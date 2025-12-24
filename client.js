@@ -1,6 +1,7 @@
+import {connect} from "https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js";
 
 async function getToken(){
-    const response = await fetch("https://localhost:3679/token",{
+    const response = await fetch("http://localhost:3679/token",{
         method: "POST",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({
@@ -8,7 +9,6 @@ async function getToken(){
             identity: "astra-123"
         })
     });
-    console.log(await response.text());
 
     const data = await response.json();
     return data.token;

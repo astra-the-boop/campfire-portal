@@ -4,7 +4,7 @@ import cors from "cors";
 import {AccessToken} from "livekit-server-sdk";
 
 const app = express();
-app.use(cors());
+app.use(cors({origin: "*"}));
 app.use(express.json());
 
 const apiKey = process.env.LIVEKIT_API_KEY;
