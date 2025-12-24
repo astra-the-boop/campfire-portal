@@ -1,32 +1,40 @@
-import express from 'express';
-import {AccessToken} from "livekit-server-sdk";
+import express from "express";
 import "dotenv/config";
+import cors from "cors";
+import {AccessToken} from "livekit-server-sdk";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-app.post("/token", (req, res) => {
+const apiKey = process.env.LIVEKIT_API_KEY;
+const apiSecret = process.env.LIVEKIT_API_SECRET;
+
+if(!apiKey || !apiSecret){
+    console.log("missing api key or secret");
+    process.exit(1);
+}
+
+app.post("/token", async (req, res) => {
     const {room, identity} = req.body;
 
-    if(!room || !identity) {
-        return res.status(400).json({error:"room & id required"});
-    }
-
-    const token = new AccessToken(
-        process.env.LIVEKIT_API_KEY,
-        process.env.LIVEKIT_API_SECRET,
-        {identity}
-    )
+    const token = new AccessToken(apiKey, apiSecret, {identity});
 
     token.addGrant({
         room,
-        roomJoin:true,
-        canPublish:true,
-        canSubscribe:true,
-        }
-    )
+        roomJoin: true,
+        canPublish: true,
+        canSubscribe: true,
+    })
 
-    res.json({token:token.toJwt()});
+    const jwt = await token.toJwt();
+    console.log(`jwt: ${jwt}`)
+
+    res.json({
+        token: jwt
+
+    })
+
 });
 
-app.listen(3000, () => {console.log("Token server running on port 3000")});
+app.listen(3679, () => {console.log("Listening on port 3679")});

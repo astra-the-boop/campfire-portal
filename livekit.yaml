@@ -6,4 +6,4 @@ rtc:
   use_external_ip: false
 
 keys:
-  ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}
+  devkey: devsecret

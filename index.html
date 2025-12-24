@@ -11,7 +11,7 @@
         import {Room} from "https://unpkg.com/livekit-client/dist/livekit-client.esm.mjs";
 
         document.getElementById("join").onclick = async()=>{
-            const res = await fetch("http://localhost:3000/token", {
+            const res = await fetch("http://localhost:3679/token", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body:JSON.stringify({
