@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>thing</title>
+</head>
+<body>
+    <button id="join">Join</button>
+
+    <script type="module">
+        import {Room} from "https://unpkg.com/livekit-client/dist/livekit-client.esm.mjs";
+
+        document.getElementById("join").onclick = async()=>{
+            const res = await fetch("http://localhost:3000/token", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body:JSON.stringify({
+                    room:"campfire",
+                    identity: "astra-" + Math.floor(Math.random() * 1000),
+                })
+            });
+
+            const {token} = await res.json();
+            const room = new Room();
+
+            await room.connect("ws://localhost:7880", token);
+
+            console.log(`connected to ${room.name}`);
+        }
+    </script>
+</body>
+</html>
