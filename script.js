@@ -7,7 +7,10 @@ join.onclick = async()=>{
 
     await callFrame.join({
         url:"https://astra-celestine.daily.co/campfire-portal-dev",
-        userName: `Campfire ${document.getElementById("event-name").value}`
+        userName: `Campfire ${document.getElementById("event-name").value}`,
+        allowUserNameChange: false,
     });
     console.log("joined");
+
+    callFrame.setUserName(`Campfire ${document.getElementById("event-name").value}`);
 }
