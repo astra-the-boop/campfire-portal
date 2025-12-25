@@ -6,7 +6,8 @@ join.onclick = async()=>{
     });
 
     await callFrame.join({
-        url:"https://astra-celestine.daily.co/campfire-portal-dev"
+        url:"https://astra-celestine.daily.co/campfire-portal-dev",
+        userName: `Campfire ${document.getElementById("event-name").value}`
     });
     console.log("joined");
 }
