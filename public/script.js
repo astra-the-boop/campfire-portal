@@ -38,6 +38,8 @@ function renderEvents(events){
     li.querySelector("[data-join]").onclick = ()=>{
         socket.emit("join-existing");
     }
+
+    eventsList.appendChild(li);
 }
 
 join.onclick = () =>{
