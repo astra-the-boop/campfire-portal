@@ -13,30 +13,32 @@ const events = {};
 
 function leaveCall(socket){
     if(!socket.data.inCall) return;
-    const {eventId, roomId} = socket.data;
+    const {roomId, eventId} = socket.data;
 
     if(roomId){
         socket.leave(roomId);
     }
 
-    const event = events[eventId];
+    const event = events[eventId]
     if(event){
-        event.participants = Math.max(0, event.participants - 1);
-        if(event.participants ===0){
+        const room = io.sockets.adapter.rooms.get(roomId);
+        if(!room || room.size === 0){
             event.roomId = null;
         }
     }
 
-    socket.data.inCall =false;
+    socket.data.inCall = false;
     socket.data.roomId = null;
 }
 
 function serializeEvents(){
-    return Object.entries(events).map(([id, e]) => ({
-        id,
-        inCall: Boolean(e.roomId),
-        participants: e.participants
-    }))
+    return Object.entries(events).map(([id, e])=>{
+        const participants = e.roomId? io.sockets.adapter.rooms.get(e.roomId)?.size??0:0;
+
+        return{
+            id, inCall:Boolean(e.roomId),participants
+        }
+    });
 }
 
 io.on("connection", (socket) => {
@@ -50,23 +52,24 @@ io.on("connection", (socket) => {
         io.emit("events-update", serializeEvents());
     });
 
-    socket.on("start-call", ({eventId})=>{
+    socket.on("start-call", ({eventId}) => {
         const event = events[eventId];
+        if(!event) return;
+
+        leaveCall(socket);
 
         if(!event.roomId){
             event.roomId = crypto.randomUUID();
         }
-
-        leaveCall(socket);
 
         socket.data.inCall = true;
         socket.data.roomId = event.roomId;
 
         socket.join(event.roomId);
 
-        socket.emit("join-call", {roomId:event.roomId});
+        socket.emit("join-call", {roomId: event.roomId});
         io.emit("events-update", serializeEvents());
-    });
+    })
 
     socket.on("join-existing", ({eventId})=>{
         const event = events[eventId];
@@ -79,7 +82,7 @@ io.on("connection", (socket) => {
 
         socket.join(event.roomId);
 
-        socket.emit("join-call", {roomId:event.roomId});
+        socket.emit("join-call", {roomId: event.roomId});
         io.emit("events-update", serializeEvents());
     })
 
