@@ -38,7 +38,8 @@ function renderEvents(events){
         eventsList.appendChild(li);
 
         if(e.id === currentEvent){
-            li.style.color =
+            li.style.color = "var(--muted)";
+            li.innerHTML += " (you)"
         }
     }
 

@@ -11,6 +11,12 @@ const io = new Server(httpServer,{
 
 const events = {};
 
+function hasSockets(eventId){
+    return Array.from(io.sockets.sockets.value()).some(
+        socket => socket.data.eventId === eventId
+    )
+}
+
 function leaveCall(socket){
     if(!socket.data.inCall) return;
     const {roomId, eventId} = socket.data;
@@ -87,12 +93,25 @@ io.on("connection", (socket) => {
     })
 
     socket.on("disconnect", ()=>{
+        const {eventId} = socket.data;
+
         leaveCall(socket);
+
+        if(eventId && !hasSockets(eventId)){
+            delete events[eventId];
+        }
+
         io.emit("events-update", serializeEvents());
     })
 
     socket.on("leave-call", ()=>{
         leaveCall(socket);
+
+        const {eventId} = socket.data;
+        if(eventId && !hasSockets(eventId)){
+            delete events[eventId];
+        }
+
         socket.emit("left-call");
         io.emit("events-update", serializeEvents());
     })
