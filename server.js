@@ -66,6 +66,7 @@ io.on("connection", (socket) => {
 
         if(!event.roomId){
             event.roomId = crypto.randomUUID();
+            event.hostSocketId = socket.id;
         }
 
         socket.data.inCall = true;
@@ -97,11 +98,14 @@ io.on("connection", (socket) => {
 
         leaveCall(socket);
 
-        if(eventId && !hasSockets(eventId)){
-            delete events[eventId];
-        }
+        const event = events[eventId];
 
-        io.emit("events-update", serializeEvents());
+        if(event){
+            if(event.hostSocketId === socket.id){
+                io.to(event.roomId).emit("call-ended");
+                delete events[eventId];
+            }
+        }
     })
 
     socket.on("leave-call", ()=>{

@@ -70,6 +70,14 @@ join.onclick = () =>{
         console.log(`left call`);
     });
 
+    socket.on("call-ended", ()=>{
+        inCall=false;
+        currentRoom=null;
+        leave.hidden = true;
+
+        alert("The host has left the call");
+    })
+
     joinContainer.hidden = true;
     lobbyContainer.hidden = false;
 }
