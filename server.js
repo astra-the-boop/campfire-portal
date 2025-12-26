@@ -16,13 +16,15 @@ function leaveCall(socket){
     const {eventId, roomId} = socket.data;
     if(!eventId||!roomId) return;
 
+    socket.leave(roomId);
+
     const event = events[eventId];
     if(!event) return;
 
     event.participants--;
 
-    if(event.participants <= 0){
-        event.roomId = null;
+    if(event.participants<=0){
+        event.roomId=null;
         event.participants = 0;
     }
 
@@ -54,8 +56,8 @@ io.on("connection", (socket) => {
         const event = events[eventId];
 
         if(!event.roomId){
-            event.roomId = crypto.randomUUID;
-            event.participate = 0;
+            event.roomId = crypto.randomUUID();
+            event.participants = 0;
         }
 
         leaveCall(socket);
@@ -64,6 +66,8 @@ io.on("connection", (socket) => {
 
         socket.data.inCall = true;
         socket.data.roomId = event.roomId;
+
+        socket.join(event.roomId);
 
         socket.emit("join-call", {roomId:event.roomId});
         io.emit("events-update", serializeEvents());
