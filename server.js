@@ -10,25 +10,24 @@ const io = new Server(httpServer,{
 });
 
 const events = {};
-const waiting = {};
 
 function leaveCall(socket){
+    if(!socket.data.inCall) return;
     const {eventId, roomId} = socket.data;
-    if(!eventId||!roomId) return;
 
-    socket.leave(roomId);
-
-    const event = events[eventId];
-    if(!event) return;
-
-    event.participants--;
-
-    if(event.participants<=0){
-        event.roomId=null;
-        event.participants = 0;
+    if(roomId){
+        socket.leave(roomId);
     }
 
-    socket.data.inCall = false;
+    const event = events[eventId];
+    if(event){
+        event.participants = Math.max(0, event.participants - 1);
+        if(event.participants ===0){
+            event.roomId = null;
+        }
+    }
+
+    socket.data.inCall =false;
     socket.data.roomId = null;
 }
 
@@ -46,7 +45,6 @@ io.on("connection", (socket) => {
 
         events[eventId] ??={
             roomId: null,
-            participants: 0
         }
 
         io.emit("events-update", serializeEvents());
@@ -57,12 +55,9 @@ io.on("connection", (socket) => {
 
         if(!event.roomId){
             event.roomId = crypto.randomUUID();
-            event.participants = 0;
         }
 
         leaveCall(socket);
-
-        event.participants++;
 
         socket.data.inCall = true;
         socket.data.roomId = event.roomId;
@@ -79,9 +74,10 @@ io.on("connection", (socket) => {
 
         leaveCall(socket);
 
-        event.participants++
         socket.data.inCall = true;
         socket.data.roomId = event.roomId;
+
+        socket.join(event.roomId);
 
         socket.emit("join-call", {roomId:event.roomId});
         io.emit("events-update", serializeEvents());

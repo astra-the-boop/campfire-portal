@@ -26,14 +26,14 @@ function renderEvents(events){
         const li = document.createElement("li");
 
         li.innerHTML = `
-        <b>${unslugify(e.id)}</b> - ${e.inCall ? `(${e.participants})`: "Idle"}
+        <b>Campfire ${unslugify(e.id)}</b> - ${e.inCall ? `(${e.participants})`: "Idle"}
         <button data-join data-event="${e.id}" ${(!e.inCall || inCall || (e.id === currentEvent))?"disabled":""}>Join call</button>`;
 
         li.querySelector("[data-join]").onclick = (ev) => {
             const targetEvent = ev.target.dataset.event;
             socket.emit("join-existing", {
                 eventId:targetEvent
-            })
+            });
         }
         eventsList.appendChild(li);
     }
