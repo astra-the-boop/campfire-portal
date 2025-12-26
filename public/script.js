@@ -24,22 +24,22 @@ function renderEvents(events){
 
     for(let e of events){
         const li = document.createElement("li");
+
+        li.innerHTML = `
+        <b>${unslugify(e.id)}</b> - ${e.inCall ? `In call(${e.participants})` : "Idle"}
+        <button data-join ${(!e.inCall||inCall)?"disabled":""}>Join call</button>
+        <button data-start ${inCall ? "disabled": ""}>Start call</button>`;
+
+        li.querySelector("[data-start]").onclick = ()=>{
+            socket.emit("start-call");
+        }
+
+        li.querySelector("[data-join]").onclick = ()=>{
+            socket.emit("join-existing");
+        }
+        eventsList.appendChild(li);
     }
 
-    li.innerHTML = `
-    <b>${unslugify(e.id)}</b> - ${e.inCall ? `In call(${e.participants})` : "Idle"}
-    <button data-join ${(!e.inCall||inCall)?"disabled":""}>Join call</button>
-    <button data-start ${inCall ? "disabled": ""}>Start call</button>`;
-
-    li.querySelector("[data-start]").onclick = ()=>{
-        socket.emit("start-call");
-    }
-
-    li.querySelector("[data-join]").onclick = ()=>{
-        socket.emit("join-existing");
-    }
-
-    eventsList.appendChild(li);
 }
 
 join.onclick = () =>{
@@ -51,13 +51,23 @@ join.onclick = () =>{
 
     socket.emit("enter", {eventId: currentEvent});
 
+    socket.on("events-update", renderEvents);
+    socket.on("join-call", ({roomId}) =>{
+        inCall=true;
+        currentRoom=roomId;
+        leave.hidden = false;
+        console.log(`joined ${roomId}`)
+    })
+
+    socket.on("left-call", () =>{
+        inCall=false;
+        currentRoom=null;
+        leave.hidden = true;
+        console.log(`left call`);
+    });
+
     joinContainer.hidden = true;
     lobbyContainer.hidden = false;
-
-    socket.on("events-update", renderEvents);
-    socket.on("join-call", ({roomId})=>{
-        alert(`joined call ${roomId}`);
-    })
 }
 
 const leave = document.getElementById("leave");

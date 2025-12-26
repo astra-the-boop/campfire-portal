@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
         const event = events[eventId];
         if(!event) return;
 
-        leaveCall(event);
+        leaveCall(socket);
 
         if(!event.roomId) {
             event.roomId = crypto.randomUUID();
@@ -96,20 +96,6 @@ io.on("connection", (socket) => {
         leaveCall(socket);
         socket.emit("left-call");
         io.emit("events-update", serializeEvents());
-    })
-
-    socket.on("join-call", ({roomId}) =>{
-        inCall=true;
-        currentRoom=roomId;
-        leave.hidden = false;
-        console.log(`joined ${roomId}`)
-    })
-
-    socket.on("left-call", () =>{
-        inCall=false;
-        currentRoom=null;
-        leave.hidden = true;
-        console.log(`left call`);
     })
 })
 
