@@ -12,6 +12,24 @@ const io = new Server(httpServer,{
 const events = {};
 const waiting = {};
 
+function leaveCall(socket){
+    const {eventId, roomId} = socket.data;
+    if(!eventId||!roomId) return;
+
+    const event = events[eventId];
+    if(!event) return;
+
+    event.participants--;
+
+    if(event.participants <= 0){
+        event.roomId = null;
+        event.participants = 0;
+    }
+
+    socket.data.inCall = false;
+    socket.data.roomId = null;
+}
+
 function serializeEvents(){
     return Object.entries(events).map(([id,e])=>({
         id,
@@ -35,14 +53,7 @@ io.on("connection", (socket) => {
     socket.on("start-call", ()=>{
         const {eventId} = socket.data;
         const event = events[eventId];
-
-        if(!event.roomId){
-            event.roomId = crypto.randomUUID();
-        }
-
-        event.participants++;
-        socket.emit("join-call", {roomId: event.roomId});
-        io.emit("events-update", serializeEvents());
+        if(!event) return;
     });
 
     socket.on("join-existing", ()=>{
