@@ -31,11 +31,11 @@ function leaveCall(socket){
 }
 
 function serializeEvents(){
-    return Object.entries(events).map(([id,e])=>({
+    return Object.entries(events).map(([id, e]) => ({
         id,
         inCall: Boolean(e.roomId),
-        waiting:waiting[id]?.size ?? 0
-    }));
+        participants: e.participants
+    }))
 }
 
 io.on("connection", (socket) => {
@@ -54,33 +54,47 @@ io.on("connection", (socket) => {
         const {eventId} = socket.data;
         const event = events[eventId];
         if(!event) return;
+
+        leaveCall(event);
+
+        if(!event.roomId) {
+            event.roomId = crypto.randomUUID();
+        }
+
+        event.participants++;
+
+        socket.data.inCall = true;
+        socket.data.roomId = event.roomId;
+
+        socket.emit("join-call", {roomId: event.roomId});
+        io.emit("events-update", serializeEvents());
     });
 
     socket.on("join-existing", ()=>{
         const {eventId} = socket.data;
         const event = events[eventId];
 
-        if(!event.roomId){return}
+        if(!event?.roomId){return}
+
+        leaveCall(socket);
 
         event.participants++;
-        socket.emit("join-call", {roomId:event.roomId});
+
+        socket.data.inCall = true;
+        socket.data.roomId = event.roomId;
+
+        socket.emit("join-call", {roomId: event.roomId});
         io.emit("events-update", serializeEvents());
     })
 
     socket.on("disconnect", ()=>{
-        const {eventId} = socket.data || {};
-        if(!eventId || !events[eventId]){return}
+        leaveCall(socket);
+        io.emit("events-update", serializeEvents());
+    })
 
-        const event = events[eventId];
-
-        if(event.participants > 0){
-            event.participants--;
-        }
-
-        if(event.participants === 0){
-            event.roomId = null;
-        }
-
+    socket.on("leave-call", ()=>{
+        leaveCall(socket);
+        socket.emit("left-call");
         io.emit("events-update", serializeEvents());
     })
 })

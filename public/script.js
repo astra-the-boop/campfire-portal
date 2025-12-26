@@ -8,6 +8,9 @@ const campfireName = document.getElementById("event");
 let socket;
 let currentEvent;
 
+let inCall = false;
+let currentRoom = null;
+
 function slugify(string){
     return string.toLowerCase().replace(/\s/g, "-");
 }
@@ -17,23 +20,23 @@ function unslugify(string){
 }
 
 function renderEvents(events){
-    eventsList.innerHTML = '';
+    eventsList.innerHTML = "";
 
     for(let e of events){
         const li = document.createElement("li");
+    }
 
-        li.innerHTML = `
-        <b>${unslugify(e.id)}</b> - ${e.inCall ? "In call" : "Waiting"} <button ${e.inCall ? "" : "disabled"} data-join>join</button> <button data-start>start call</button>`;
+    li.innerHTML = `
+    <b>${unslugify(e.id)}</b> - ${e.inCall ? `In call(${e.participants})` : "Idle"}
+    <button data-join ${(!e.inCall||inCall)?"disabled":""}>Join call</button>
+    <button data-start ${inCall ? "disabled": ""}>Start call</button>`;
 
-        li.querySelector("[data-start]").onclick = ()=>{
-            socket.emit("start-call");
-        }
+    li.querySelector("[data-start]").onclick = ()=>{
+        socket.emit("start-call");
+    }
 
-        li.querySelector("[data-join]").onclick = ()=>{
-            socket.emit("join-existing");
-        }
-
-        eventsList.appendChild(li);
+    li.querySelector("[data-join]").onclick = ()=>{
+        socket.emit("join-existing");
     }
 }
 
