@@ -8,7 +8,7 @@ import "dotenv/config";
 const app = express();
 const httpServer = createServer(app);
 
-const origins = ["http://astra-the-boop.github.io", "https://astra-the-boop.github.io/campfire-portal/public", "https://astra-the-boop.github.io/campfire-portal"]
+const origins = ["https://astra-the-boop.github.io"]
 
 const io = new Server(httpServer, {
     cors: {
