@@ -11,6 +11,8 @@ let currentEvent;
 
 let inCall = false;
 let currentRoom = null;
+let callFrame = null;
+
 
 function slugify(string){
     return string.toLowerCase().replace(/\s/g, "-");
@@ -58,26 +60,53 @@ join.onclick = () =>{
     socket.emit("enter", {eventId: currentEvent});
 
     socket.on("events-update", renderEvents);
-    socket.on("join-call", ({roomId}) =>{
-        inCall=true;
-        currentRoom=roomId;
+    socket.on("join-call", ({roomId})=>{
+        inCall = true;
+        currentRoom = roomId;
         leave.hidden = false;
+
+        if(callFrame){
+            callFrame.destroy();
+        }
+
+        callFrame = DailyIframe.createFrame(
+            document.getElementById("video-container"),{
+                showLeaveButton: false,
+                iframeStyle:{
+                    width: "100%",
+                    height: "100%",
+                    border: "0"
+                }
+            }
+        )
+        callFrame.join({url:roomId});
         console.log(`joined ${roomId}`)
     })
 
     socket.on("left-call", () =>{
-        inCall=false;
-        currentRoom=null;
+        inCall = false;
+        currentRoom = null;
         leave.hidden = true;
-        console.log(`left call`);
+
+        if(callFrame){
+            callFrame.destroy();
+            callFrame = null;
+        }
+
+        console.log("left call");
     });
 
     socket.on("call-ended", ()=>{
-        inCall=false;
-        currentRoom=null;
+        inCall = false;
+        currentRoom = null;
         leave.hidden = true;
 
-        alert("The host has left the call");
+        if(callFrame){
+            callFrame.destroy();
+            callFrame = null;
+        }
+
+        alert("The host has left the call")
     })
 
 

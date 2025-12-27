@@ -15,21 +15,28 @@ const apiKey = process.env.API_KEY;
 
 async function createRoom(){
     const res = await fetch("https://api.daily.co/v1/rooms",{
-        method:"POST",
+        method: "POST",
         headers:{
-            "Authorization":`Bearer ${apiKey}`,
-            "Content-Type":"application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
         },
-        body:JSON.stringify({
-            properties: {
+        body: JSON.stringify({
+            properties:{
                 enable_chat: true,
                 start_audio_off: false,
                 start_video_off: false,
             }
         })
-    })
+    });
 
-    return await res.json();
+    const data = await res.json();
+
+    if(!data.url){
+        console.log('Daily room creation failed', data);
+        return null;
+    }
+
+    return data;
 }
 
 function getRandom(eventId){
@@ -96,6 +103,7 @@ io.on("connection", (socket) => {
 
         if (!event.roomId) {
             const dailyRoom = await createRoom();
+            if(!dailyRoom) return;
             event.roomId = dailyRoom.url;
             event.hostSocketId = socket.id;
         }
