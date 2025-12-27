@@ -25,6 +25,7 @@ async function createRoom(){
         },
         body: JSON.stringify({
             properties:{
+                exp: Math.floor(Date.now()/1000)+60*60*5,
                 enable_chat: true,
                 start_audio_off: false,
                 start_video_off: false,
@@ -87,6 +88,18 @@ function serializeEvents(){
     });
 }
 
+async function deleteRoom(roomName){
+    if(!roomName) return;
+
+    await fetch(`https://api.daily.co/v1/rooms/${roomName}`,{
+        method: "DELETE",
+        headers:{
+            "Authorization": `Bearer ${apiKey}`
+        }
+    })
+    console.log(`deleted ${roomName}`);
+}
+
 io.on("connection", (socket) => {
     socket.on("enter", ({eventId}) => {
         socket.data.eventId = eventId;
@@ -108,6 +121,7 @@ io.on("connection", (socket) => {
             const dailyRoom = await createRoom();
             if(!dailyRoom) return;
             event.roomId = dailyRoom.url;
+            event.roomName = dailyRoom.name;
             event.hostSocketId = socket.id;
         }
 
@@ -135,18 +149,19 @@ io.on("connection", (socket) => {
         io.emit("events-update", serializeEvents());
     })
 
-    socket.on("disconnect", ()=>{
+    socket.on("disconnect", async () => {
         const {eventId} = socket.data;
-        if(!eventId) return;
+        if (!eventId) return;
         const event = events[eventId];
 
         leaveCall(socket);
 
-        if(event){
-            if(event.hostSocketId === socket.id){
+        if (event) {
+            if (event.hostSocketId === socket.id) {
                 io.to(event.roomId).emit("call-ended");
+                await deleteRoom(event.roomName);
                 delete events[eventId];
-            }else if(!hasSockets(eventId)){
+            } else if (!hasSockets(eventId)) {
                 delete events[eventId];
             }
         }

@@ -79,7 +79,8 @@ join.onclick = () =>{
                 }
             }
         )
-        callFrame.join({url:roomId});
+        callFrame.join({url:roomId,
+        userName: unslugify(`Campfire ${currentEvent}`),});
         console.log(`joined ${roomId}`)
     })
 
