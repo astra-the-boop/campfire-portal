@@ -3,6 +3,7 @@ import {createServer} from "http";
 import {Server} from "socket.io";
 import crypto from "crypto"
 import fetch from "node-fetch";
+import "dotenv/config";
 
 const app = express();
 const httpServer = createServer(app);
@@ -12,6 +13,8 @@ const io = new Server(httpServer,{
 
 const events = {};
 const apiKey = process.env.DAILY_API_KEY;
+
+console.log(Boolean(process.env.DAILY_API_KEY));
 
 async function createRoom(){
     const res = await fetch("https://api.daily.co/v1/rooms",{
