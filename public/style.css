@@ -75,6 +75,7 @@
 #video-container{
     width: 100%;
     height: 40rem;
+    /*display: none;*/
 }
 
 body{
@@ -157,4 +158,14 @@ button[disabled]{
 #lobby-container h3{
     margin-bottom: 1rem;
     color: var(--cf-secondary-brown);
+}
+
+#leave{
+    position: absolute;
+    z-index: 5;
+
+}
+
+#video-container-container{
+    text-align: right;
 }
