@@ -15,39 +15,7 @@ let currentRoom = null;
 let callFrame = null;
 
 
-function slugify(string){
-    return string.toLowerCase().replace(/\s/g, "-");
-}
-
-function renderEvents(events){
-    eventsList.innerHTML = "";
-
-    for(let e of events){
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-        <b>Campfire ${e.name}</b> - ${e.inCall ? `(${e.participants})`: "Idle"}
-        <button data-join data-event="${e.id}" ${(!e.inCall || inCall || (e.id === currentEvent))?"disabled":""}>Join call</button>`;
-
-        li.querySelector("[data-join]").onclick = (ev) => {
-            const targetEvent = ev.target.dataset.event;
-            socket.emit("join-existing", {
-                eventId:ev.target.dataset.event
-            });
-        }
-        eventsList.appendChild(li);
-
-        if(e.id === currentEvent){
-            li.style.color = "var(--muted)";
-            li.innerHTML += " (you)"
-        }
-    }
-
-    start.disabled = inCall;
-    random.disabled = inCall;
-}
-
-join.onclick = () =>{
+function joinEvent(){
     document.getElementById("title").style.display = "none";
     const name = campfireName.value.trim();
     currentEvent = slugify(name);
@@ -83,7 +51,7 @@ join.onclick = () =>{
             }
         )
         callFrame.join({url:roomId,
-        userName: `Campfire ${name}`,});
+            userName: `Campfire ${name}`,});
         console.log(`joined ${roomId}`)
     })
 
@@ -128,6 +96,42 @@ join.onclick = () =>{
     lobbyContainer.hidden = false;
 }
 
+function slugify(string){
+    return string.toLowerCase().replace(/\s/g, "-");
+}
+
+function renderEvents(events){
+    eventsList.innerHTML = "";
+
+    for(let e of events){
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+        <b>Campfire ${e.name}</b> - ${e.inCall ? `(${e.participants})`: "Idle"}
+        <button data-join data-event="${e.id}" ${(!e.inCall || inCall || (e.id === currentEvent))?"disabled":""}>Join call</button>`;
+
+        li.querySelector("[data-join]").onclick = (ev) => {
+            const targetEvent = ev.target.dataset.event;
+            socket.emit("join-existing", {
+                eventId:ev.target.dataset.event
+            });
+        }
+        eventsList.appendChild(li);
+
+        if(e.id === currentEvent){
+            li.style.color = "var(--muted)";
+            li.innerHTML += " (you)"
+        }
+    }
+
+    start.disabled = inCall;
+    random.disabled = inCall;
+}
+
+join.onclick = () =>{
+    joinEvent();
+}
+
 const leave = document.getElementById("leave");
 const start = document.getElementById("start-call");
 
@@ -145,4 +149,10 @@ random.onclick = () =>{
     socket.emit("join-random");
 }
 
-// le stuff
+campfireName.addEventListener("focus", () =>{
+    document.addEventListener("keydown", e => {
+        if(e.key==="Enter"){
+            joinEvent()
+        }
+    })
+})
